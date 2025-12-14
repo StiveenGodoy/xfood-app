@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Pruebas Unitarias - XFood Suite Completa</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .test-passed { background-color: #d1e7dd !important; color: #0f5132; border-left: 4px solid #198754; }
+        .test-failed { background-color: #f8d7da !important; color: #842029; border-left: 4px solid #dc3545; }
+        .test-summary { font-size: 1.1rem; font-weight: 600; }
+    </style>
+</head>
+<body class="p-5 bg-light">
+    <div class="container">
+        <h1 class="mb-4">🛡️ Reporte de Pruebas de Software (QA)</h1>
+        
+        <div class="card shadow-sm mb-3">
+            <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                <span>Resultados de Pruebas Unitarias & Integración</span>
+                <span id="test-summary" class="badge bg-secondary">Cargando...</span>
+            </div>
+            <ul id="test-results" class="list-group list-group-flush"></ul>
+        </div>
+    </div>
+
+    <script>
+       
+        class ItemMenu {
+            constructor(id, name, category, price) {
+                this.id = id;
+                this.name = name;
+                this.category = category;
+                this.price = price;
+            }
+        }
+
+        class Pedido {
+            constructor(tableNumber, waiterName) {
+                this.id = "ORD-" + Date.now() + Math.floor(Math.random() * 1000); 
+                this.table = tableNumber;
+                this.waiter = waiterName;
+                this.items = []; 
+                this.status = 'pending'; 
+                this.total = 0.00;
+                this.createdAt = new Date().toLocaleString();
+            }
+
+            addItem(itemMenu, quantity = 1) {
+                const existingItem = this.items.find(i => i.item.id === itemMenu.id);
+                if (existingItem) {
+                    existingItem.quantity += parseInt(quantity);
+                } else {
+                    this.items.push({ item: itemMenu, quantity: parseInt(quantity) });
+                }
+                this.calculateTotal();
+            }
+
+            calculateTotal() {
+                this.total = this.items.reduce((sum, orderItem) => {
+                    return sum + (orderItem.item.price * orderItem.quantity);
+                }, 0);
+            }
+        }
+
+        class RepositorioPedidos {
+            constructor() {
+                this.storageKey = 'xfood_orders_db_TEST';
+                this.init();
+            }
+
+            init() {
+                if (!localStorage.getItem(this.storageKey)) {
+                    localStorage.setItem(this.storageKey, JSON.stringify([]));
+                }
+            }
+
+            save(pedido) {
+                const orders = this.getAll();
+                orders.push(pedido);
+                localStorage.setItem(this.storageKey, JSON.stringify(orders));
+            }
+
+            getAll() {
+                const data = localStorage.getItem(this.storageKey);
+                return data ? JSON.parse(data) : [];
+            }
+
+            getByStatus(status) {
+                const orders = this.getAll();
+                if (Array.isArray(status)) {
+                    return orders.filter(o => status.includes(o.status));
+                }
+                return orders.filter(o => o.status === status);
+            }
+            
+            getByTable(tableNumber) {
+                const orders = this.getAll();
+                return orders.filter(o => o.table == tableNumber && o.status !== 'completed');
+            }
+
+            updateStatus(orderId, newStatus) {
+                const orders = this.getAll();
+                const orderIndex = orders.findIndex(o => o.id == orderId); 
+                
+                if (orderIndex !== -1) {
+                    orders[orderIndex].status = newStatus;
+                    localStorage.setItem(this.storageKey, JSON.stringify(orders));
+                    return true;
+                }
+                return false;
+            }
+        }
+
+        let totalTests = 0;
+        let passedTests = 0;
+        let failedTests = 0;
+
+        function assert(description, condition) {
+            totalTests++;
+            const ul = document.getElementById('test-results');
+            const li = document.createElement('li');
+            
+            if (condition) {
+                passedTests++;
+                li.className = 'list-group-item d-flex justify-content-between align-items-center test-passed';
+                li.innerHTML = `<span>✅ ${description}</span><span class="badge bg-success rounded-pill">PASS</span>`;
+            } else {
+                failedTests++;
+                li.className = 'list-group-item d-flex justify-content-between align-items-center test-failed';
+                li.innerHTML = `<span>❌ ${description}</span><span class="badge bg-danger rounded-pill">FAIL</span>`;
+            }
+            ul.appendChild(li);
+            updateSummary();
+        }
+
+        function updateSummary() {
+            const summary = document.getElementById('test-summary');
+            if (totalTests > 0) {
+                const percentage = ((passedTests / totalTests) * 100).toFixed(0);
+                summary.textContent = `${passedTests}/${totalTests} exitosas (${percentage}%)`;
+                summary.className = failedTests === 0 ? 'badge bg-success' : 'badge bg-warning';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Limpiamos la DB de pruebas
+            localStorage.removeItem('xfood_orders_db_TEST');
+
+            setTimeout(() => {
+                try {
+              
+                    const itemPizza = new ItemMenu(1, "Pizza", "Main", 10.00);
+                    const itemSoda = new ItemMenu(2, "Soda", "Drink", 2.00);
+
+                    const pedidoTest = new Pedido(1, "Tester");
+                    pedidoTest.addItem(itemPizza, 2); 
+                    pedidoTest.addItem(itemSoda, 1);
+                    assert("UT-01: El pedido calcula correctamente el total (2 Pizzas + 1 Soda = $22.00)", Math.abs(pedidoTest.total - 22.00) < 0.01);
+
+                    const pedidoNuevo = new Pedido(5, "Tester");
+                    assert("UT-02: Un nuevo pedido se inicializa con estado 'pending'", pedidoNuevo.status === 'pending');
+
+                    const pedidoDuplicado = new Pedido(2, "Tester");
+                    pedidoDuplicado.addItem(itemPizza, 1);
+                    pedidoDuplicado.addItem(itemPizza, 2);
+                    const itemDuplicado = pedidoDuplicado.items.find(i => i.item.id === itemPizza.id);
+                    assert("UT-03: Al agregar el mismo item múltiples veces, se suma la cantidad (no se duplica)", itemDuplicado && itemDuplicado.quantity === 3);
+
+                    const pedidoSeguro = new Pedido(1, "Hacker");
+                    assert("SEC-01: El pedido genera un ID único con formato 'ORD-'", pedidoSeguro.id.includes("ORD-"));
+
+                    const pedidoInicial = new Pedido(3, "TestUser");
+                    assert("UT-04: Un pedido nuevo tiene items vacío y total en 0", pedidoInicial.items.length === 0 && pedidoInicial.total === 0);
+
+                    const repo = new RepositorioPedidos();
+                    const totalAntes = repo.getAll().length;
+                    const pedidoIntegracion = new Pedido(99, "IntegrationBot");
+                    pedidoIntegracion.addItem(itemPizza, 1);
+                    repo.save(pedidoIntegracion);
+                    const totalDespues = repo.getAll().length;
+                    assert("IT-01: El Repositorio guarda y persiste el pedido en localStorage", totalDespues === totalAntes + 1);
+
+                    const repo2 = new RepositorioPedidos();
+                    const pedidoMesa5 = new Pedido(5, "Waiter1");
+                    pedidoMesa5.addItem(itemSoda, 1);
+                    repo2.save(pedidoMesa5);
+                    const pedidosMesa5 = repo2.getByTable(5);
+                    assert("IT-02: El Repositorio recupera pedidos filtrados por mesa", pedidosMesa5.length > 0 && pedidosMesa5[0].table === 5);
+
+                    const repo3 = new RepositorioPedidos();
+                    const pedidoEstado = new Pedido(7, "Waiter2");
+                    repo3.save(pedidoEstado);
+                    const updateSuccess = repo3.updateStatus(pedidoEstado.id, 'preparing');
+                    const updatedOrder = repo3.getAll().find(o => o.id === pedidoEstado.id);
+                    assert("IT-03: El Repositorio actualiza el estado de un pedido", updateSuccess && updatedOrder.status === 'preparing');
+
+                    const repo4 = new RepositorioPedidos();
+                    const pedidoPending = new Pedido(8, "Waiter3");
+                    repo4.save(pedidoPending);
+                    const pedidosPending = repo4.getByStatus('pending');
+                    assert("IT-04: El Repositorio filtra pedidos por estado", pedidosPending.length > 0);
+
+                    const repo5 = new RepositorioPedidos();
+                    const pedidoCompletado = new Pedido(10, "Waiter4");
+                    pedidoCompletado.addItem(itemPizza, 1);
+                    repo5.save(pedidoCompletado);
+                    
+                    const existeAntes = repo5.getByTable(10).some(p => p.id === pedidoCompletado.id);
+                    repo5.updateStatus(pedidoCompletado.id, 'completed');
+                    const existeDespues = repo5.getByTable(10).some(p => p.id === pedidoCompletado.id);
+                    
+                    assert("IT-05: Los pedidos completados se filtran y no aparecen en getByTable", existeAntes === true && existeDespues === false);
+
+                } catch (error) {
+                    console.error(error);
+                    assert("ERROR CRÍTICO: " + error.message, false);
+                }
+            }, 300);
+        });
+    </script>
+</body>
+</html>

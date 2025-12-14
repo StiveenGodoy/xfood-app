@@ -1,0 +1,164 @@
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #f8f9fa;
+    min-height: 100vh;
+}
+
+button, .card, .role-btn {
+    transition: all 0.2s ease-in-out;
+}
+
+.role-btn {
+    background-color: white;
+    /* Truco: Un borde gris muy suave para definir la forma */
+    border: 1px solid #e9ecef; 
+    border-radius: 16px; /* Más redondeado, estilo moderno */
+    
+    /* Sombra más notable para que se separe del fondo */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); 
+    
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); /* Animación más fluida */
+    position: relative;
+    overflow: hidden;
+    font-weight: 600; /* Texto un poco más gordito */
+}
+
+/* Eliminar borde azul de selección */
+.role-btn:focus {
+    outline: none;
+    border-color: #dee2e6;
+}
+
+/* --- COLORES POR ROL (HOVER) --- */
+
+/* 1. MESERO (Azul) */
+.role-btn[data-role="waiter"] {
+    color: #0d6efd;
+}
+/* Al pasar el mouse: Fondo Azul, Texto Blanco, Sombra Azul */
+.role-btn[data-role="waiter"]:hover,
+.role-btn[data-role="waiter"].active {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+    color: white;
+    transform: translateY(-4px) scale(1.02); /* Se eleva y crece un pelín */
+    box-shadow: 0 12px 24px rgba(13, 110, 253, 0.35); /* Resplandor azul */
+}
+
+.role-btn[data-role="kitchen"] { color: #ffc107; }
+
+.role-btn[data-role="kitchen"]:hover,
+.role-btn[data-role="kitchen"].active {
+    background-color: #ffc107;
+    border-color: #ffc107;
+    color: #212529 !important; /* <--- AQUÍ ESTÁ EL CAMBIO: Texto NEGRO (Gris oscuro) */
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 12px 24px rgba(255, 193, 7, 0.4);
+}
+
+/* 3. ADMIN (Gris Oscuro) */
+.role-btn[data-role="admin"] {
+    color: #6d747d;
+}
+.role-btn[data-role="admin"]:hover,
+.role-btn[data-role="admin"].active {
+    background-color: #6d747d;
+    border-color: #6d747d;
+    color: white;
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 12px 24px rgba(52, 58, 64, 0.35); /* Resplandor oscuro */
+}
+
+/* Manejo de iconos */
+.role-btn i {
+    font-size: 1.5rem; /* Iconos más grandes */
+    margin-bottom: 0.5rem; /* Separación */
+    transition: color 0.3s ease;
+}
+.role-btn:hover i,
+.role-btn.active i {
+    color: white !important;
+}
+
+.table-card {
+    cursor: pointer;
+    background: white;
+    border: 1px solid #dee2e6;
+}
+
+.table-card:hover {
+    border-color: #212529;
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.table-card .badge-notification {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: #dc3545;
+    color: white;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: bold;
+}
+
+.border-warning { border-color: #ffc107 !important; }
+.border-primary { border-color: #0d6efd !important; }
+.border-success { border-color: #198754 !important; }
+.border-start-4 { border-left-width: 4px !important; }
+
+.kitchen-ticket {
+    border: 1px solid #e9ecef;
+    background: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+
+.status-badge {
+    padding: 0.35em 0.65em;
+    font-size: 0.75em;
+    font-weight: 700;
+    border-radius: 50rem;
+    text-transform: uppercase;
+}
+
+.status-pending { background-color: #fff3cd; color: #856404; }
+.status-preparing { background-color: #cff4fc; color: #055160; }
+.status-ready { background-color: #d1e7dd; color: #0f5132; }
+.status-completed { background-color: #e2e3e5; color: #41464b; }
+
+.d-none {
+    display: none !important;
+}
+
+section {
+    animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.empty-msg {
+    font-style: italic;
+    opacity: 0.6;
+}
+
+
+#btn-add-item {
+    background-color: #ff6b35 !important; 
+    border-color: #ff6b35 !important;
+    color: white !important;
+}
+
+#btn-add-item:hover {
+    background-color: #af3200 !important;
+}
+
