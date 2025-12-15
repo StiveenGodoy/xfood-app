@@ -70,10 +70,11 @@ class PedidoController {
     }
 
     agregarItemModal() {
-        // Validación de seguridad por si acaso
+        // Validación de seguridad por si acaso la orden no existe "EFD"
         if (!this.currentOrder) {
             console.warn("Orden no existía, creando una nueva...");
             this.iniciarNuevaOrden();
+            
         }
 
         const select = document.getElementById('menu-select');
